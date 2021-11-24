@@ -1,3 +1,3 @@
 # Introduction to temporal
 
-TODO: write [great documentation](http://jacobian.org/writing/what-to-write/)
+Temporal is a Clojure library wrapping the official Temporal Java SDK

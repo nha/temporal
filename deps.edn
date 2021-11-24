@@ -1,10 +1,15 @@
-{:paths ["src" "resources"]
- :deps {org.clojure/clojure {:mvn/version "1.10.3"}}
- :aliases
- {:build {:deps {io.github.seancorfield/build-clj
-                 {:git/tag "v0.4.0" :git/sha "54e39ae"}}
-          :ns-default build}
-  :test {:extra-paths ["test"]
-         :extra-deps {org.clojure/test.check {:mvn/version "1.1.0"}
-                      io.github.cognitect-labs/test-runner
-                      {:git/tag "v0.5.0" :git/sha "48c3c67"}}}}}
+{:paths   ["src" "resources"]
+ :deps    {org.clojure/clojure      {:mvn/version "1.10.3"}
+           io.temporal/temporal-sdk {:mvn/version "1.5.0"}}
+ :aliases {:build {:deps       {io.github.clojure/tools.build {:git/tag "v0.6.8" :git/sha "d79ae84"}}
+                   :ns-default build}
+           :dev   {:extra-paths ["dev"]
+                   :extra-deps  {cider/cider-nrepl            {:mvn/version "0.27.2"}
+                                 io.temporal/temporal-testing {:mvn/version "1.5.0"}}
+                   :main-opts   ["-m" "nrepl.cmdline" "--middleware" "[cider.nrepl/cider-middleware]"]}
+           :test  {:extra-paths ["test"]
+                   :extra-deps  {org.clojure/test.check       {:mvn/version "1.1.0"}
+                                 lambdaisland/kaocha          {:mvn/version "1.60.945"}
+                                 io.temporal/temporal-testing {:mvn/version "1.5.0"}}
+                   :main-opts   ["-m" "kaocha.runner"]}}}
+
