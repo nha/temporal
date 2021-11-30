@@ -1,13 +1,14 @@
 (ns nha.temporal
   (:import
    [io.temporal.activity ActivityInterface ActivityMethod ActivityOptions]
-   [io.temporal.client WorkflowClient WorkflowOptions]
+   [io.temporal.client WorkflowClient WorkflowOptions WorkflowClientOptions]
    [io.temporal.common RetryOptions]
    [io.temporal.serviceclient WorkflowServiceStubs WorkflowServiceStubsOptions]
    [io.temporal.worker Worker WorkerFactory WorkerOptions WorkerFactoryOptions]
    [io.temporal.workflow Workflow WorkflowInterface WorkflowMethod]
    [java.lang.annotation Retention RetentionPolicy Target ElementType]
-   [java.time Duration]))
+   [java.time Duration]
+   [java.util.concurrent TimeUnit]))
 
 ;; macros to reduce annotations
 
@@ -205,6 +206,7 @@
      })
   all entries are optional
   "
+  ^WorkerFactoryOptions
   [{:keys [enable-logging-in-replay
            max-workflow-thread-count
            workflow-cache-size
@@ -223,6 +225,7 @@
 
 (defn workflow-service-stubs-opts
   "Helper to create a WorkflowServiceStubsOptions"
+  ^WorkflowServiceStubsOptions
   [{:keys [target]}]
   (.build
     (cond-> (WorkflowServiceStubsOptions/newBuilder)
@@ -235,3 +238,102 @@
    (WorkflowServiceStubs/newInstance))
   ([^WorkflowServiceStubsOptions opts]
    (WorkflowServiceStubs/newInstance opts)))
+
+(defn client-ops
+  ^WorkflowClientOptions
+  ([] (-> (WorkflowClientOptions/newBuilder)
+          (.build)))
+  ([{:keys []}]
+   (-> (WorkflowClientOptions/newBuilder)
+       (.build))))
+
+(defn workflow-client
+  ([^WorkflowServiceStubs service]
+   (WorkflowClient/newInstance service
+                               ))
+  ([^WorkflowServiceStubs service ^WorkflowClientOptions opts]
+   (WorkflowClient/newInstance service opts)))
+
+(defn worker-factory
+  ^WorkerFactory
+  ([^WorkflowClient client] (WorkerFactory/newInstance client))
+  ([^WorkflowClient client ^WorkerFactoryOptions factory-opts] (WorkerFactory/newInstance client factory-opts)))
+
+(defn new-worker
+  ([^WorkerFactory factory ^String task-queue]
+   (.newWorker factory task-queue))
+  ([^WorkerFactory factory ^String task-queue ^WorkerOptions worker-opts]
+   (.newWorker factory task-queue worker-opts)))
+
+(defn component
+  "higher-level fn: returns a map suitable for making a stuartsierra/component or similar.
+  task-queue: String, the name of the task queue
+
+  opts: options for the subcomponents. all optional.
+    service-opts: an instance of WorkflowServiceStubsOptions (can use `workflow-service-stubs-opts` to produce it)
+    client-opts: an instance of WorkflowClientOptions (can use `client-ops` to get and instance of WorkflowClientOptions)
+    factory-opts: an instance of WorkerFactoryOptions (can use `worker-factory-opts` to get and instance of WorkerFactoryOptions)
+    worker-opts: an instance of WorkerOptions (can use `worker-opts` to get and instance of WorkerOptions)
+  "
+  ([^String task-queue implementation-types activities-impls] (component task-queue implementation-types activities-impls nil))
+  ([^String task-queue
+    implementation-types
+    activities-impls
+    {:keys [service-opts client-opts factory-opts worker-opts] :as opts}]
+   (let [^WorkflowServiceStubs service (if service-opts
+                                         (workflow-service-stubs service-opts)
+                                         (workflow-service-stubs))
+         ^WorkflowClient client        (if client-opts
+                                         (workflow-client service client-opts)
+                                         (workflow-client service))
+         ^WorkerFactory factory        (if factory-opts
+                                         (worker-factory client factory-opts)
+                                         (worker-factory client))
+         ^Worker worker                (if worker-opts
+                                         (new-worker factory task-queue worker-opts)
+                                         (new-worker factory task-queue))]
+     
+     (.registerWorkflowImplementationTypes worker (into-array implementation-types))
+     (.registerActivitiesImplementations worker  (into-array activities-impls))
+     (.start factory)
+
+     {:service service
+      :client  client
+      :factory factory
+      :worker  worker})))
+
+(defn stop-component [{:keys [service client factory worker test-environment] :as m}]
+(let [^GreetingWorkflow workflow (.newWorkflowStub client
+                                                        GreetingWorkflow
+                                                        (-> (WorkflowOptions/newBuilder)
+                                                            (.setWorkflowId workflow-id)
+                                                            (.setTaskQueue task-queue)
+                                                            (.build)))]
+
+       (is (= "HELLO WORLD" (.getGreeting workflow "WORLD")))
+       ;; (is (= "HELLO NICO" (.getGreeting workflow "NICO")))
+
+       (println "TEST DONE")
+
+       ;; test-env
+       ;; service
+       ;; client
+       ;; factory
+       ;; worker
+
+       (when-not ci?
+         (.shutdown factory)
+         (.awaitTermination factory 1 TimeUnit/SECONDS))
+
+       ;; client here
+
+       (if ci?
+         (.close test-environment)
+         (do
+           (.shutdown service)
+           (Thread/sleep 100)
+           (.shutdownNow service)
+           (.awaitTermination service 1 TimeUnit/SECONDS))))
+  m)
+
+
