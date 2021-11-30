@@ -292,7 +292,7 @@
          ^Worker worker                (if worker-opts
                                          (new-worker factory task-queue worker-opts)
                                          (new-worker factory task-queue))]
-     
+
      (.registerWorkflowImplementationTypes worker (into-array implementation-types))
      (.registerActivitiesImplementations worker  (into-array activities-impls))
      (.start factory)
@@ -303,7 +303,7 @@
       :worker  worker})))
 
 (defn stop-component
-  ([c] (stop-component nil))
+  ([c] (stop-component c nil))
   ([{:keys [service
             ;client
             factory
