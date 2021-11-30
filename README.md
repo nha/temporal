@@ -64,6 +64,9 @@ Run the project's tests:
 
     $ clojure -M:test
 
+Deploy:
+    $ clj -Spom
+
 ## License
 
 Copyright © 2021 Nicolas.ha
