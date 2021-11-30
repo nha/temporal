@@ -454,64 +454,30 @@
   (println "in CI? " (in-ci?))
 
   (let [ci? (in-ci?)
-        {:keys [test-env service client factory worker]} (if ci?
-                                                           (testsut/test-component task-queue
-                                                                                   [(class reified-workflow)]
-                                                                                   [my-activity]
-                                                                                   {:factory-opts test-factory-opts})
-                                                           (sut/component task-queue
-                                                                          [;; either of these work
-                                                                           ;; GreetingWorkflowImplStep4
-                                                                           (class reified-workflow)]
-                                                                          [my-activity]
-                                                                          {:service-opts nil})
-                                                           )
-        ^TestWorkflowEnvironment test-environment (when (in-ci?)
-                                                    (TestWorkflowEnvironment/newInstance (->(TestEnvironmentOptions/newBuilder)
-                                                                                            (.setWorkerFactoryOptions test-factory-opts)
-                                                                                            ;;(.setWorkflowClientOptions test-worker-opts)
-                                                                                            (.build))))
-        ^WorkflowServiceStubs service                  (if (in-ci?)
-                                                         nil
-                                                         (sut/workflow-service-stubs (sut/workflow-service-stubs-opts {:target "127.0.0.1:7233"})))
-        ^WorkflowClient client                    (if (in-ci?)
-                                                    (.getWorkflowClient test-environment)
-                                                    (WorkflowClient/newInstance service
-                                                                                (-> (WorkflowClientOptions/newBuilder)
-                                                                                    (.build))))
-        ^WorkerFactory factory                    (if (in-ci?)
-                                                    nil
-                                                    (WorkerFactory/newInstance client test-factory-opts))
+        opts {:factory-opts test-factory-opts
+              :worker-opts  test-worker-opts
+              :service-opts (sut/workflow-service-stubs-opts {:target "127.0.0.1:7233"})}
 
-
-        ^Worker worker (if (in-ci?)
-                         (.newWorker test-environment task-queue test-worker-opts)
-                         (.newWorker factory task-queue test-worker-opts))]
+        {:keys [test-env service client factory worker] :as component}
+        (if ci?
+          (testsut/test-component task-queue
+                                  [(class reified-workflow)]
+                                  [my-activity]
+                                  (assoc opts :test-env-opts (testsut/test-env-opts opts)))
+          (sut/component task-queue
+                         [;; either of these work
+                          ;; GreetingWorkflowImplStep4
+                          (class reified-workflow)]
+                         [my-activity]
+                         opts))]
 
     (def component {:service service
                     :client  client
                     :factory factory
                     :worker  worker})
 
-    (println "WILL REGISTER " component)
-    (.registerWorkflowImplementationTypes worker (into-array [;; either
-                                                        ;; of these work
-                                                        ;; kind of an
-                                                        ;; anonymous
-                                                       ;; implementation
-                                                             ;; GreetingWorkflowImplStep4
+    (println "COMPONENT STARTED ")
 
-                                                              (class reified-workflow)
-                                                              ]))
-    (println "DID REGISTER ")
-    (.registerActivitiesImplementations worker  (into-array [my-activity]))
-
-    (println "WILL START FACTORY ")
-    (if (in-ci?)
-      (.start test-environment)
-      (.start factory))
-
-    (println "STARTED FACTORY")
     (let [^GreetingWorkflow workflow (.newWorkflowStub client
                                                        GreetingWorkflow
                                                        (-> (WorkflowOptions/newBuilder)
@@ -530,16 +496,7 @@
       ;; factory
       ;; worker
 
-      (when-not (in-ci?)
-        (.shutdown factory)
-        (.awaitTermination factory 1 TimeUnit/SECONDS))
-
-      ;; client here
-
-      (if (in-ci?)
-        (.close test-environment)
-        (do
-          (.shutdown service)
-          (Thread/sleep 100)
-          (.shutdownNow service)
-          (.awaitTermination service 1 TimeUnit/SECONDS))))))
+      (if ci?
+        (testsut/stop-component component)
+        (sut/stop-component component))
+      )))
