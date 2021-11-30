@@ -17,6 +17,7 @@
   [name & sigs]
   ;; TODO see if imports necessary (and where)
   (import 'java.lang.annotation.Retention)
+  (import 'java.lang.annotation.RetentionPolicy)
   (import 'io.temporal.workflow.WorkflowMethod)
   (let [tag (fn [x] (or (:tag (meta x)) Object))
         psig (fn [[name [& args]]]
@@ -24,14 +25,14 @@
                  ;; change: add meta - OK
                  (with-meta name
                    (merge
-                     '{java.lang.annotation.Retention RetentionPolicy/RUNTIME
+                    '{java.lang.annotation.Retention java.lang.annotation.RetentionPolicy/RUNTIME
                       io.temporal.workflow.WorkflowMethod true}
                      (meta name)))
                  (vec (map tag args)) (tag name) (map meta args)))
         cname (with-meta (symbol (str (namespace-munge *ns*) "." name))
                 ;; change - add meta by default - OK
                 (merge
-                  '{java.lang.annotation.Retention RetentionPolicy/RUNTIME
+                 '{java.lang.annotation.Retention java.lang.annotation.RetentionPolicy/RUNTIME
                     io.temporal.workflow.WorkflowInterface true}
                   (meta name)))]
     ;;(println "interface name " (into {} (seq (meta cname))))
@@ -53,6 +54,7 @@
   [name & sigs]
   ;; TODO see if imports necessary (and where)
   (import 'java.lang.annotation.Retention)
+  (import 'java.lang.annotation.RetentionPolicy)
   (import 'io.temporal.activity.ActivityInterface)
   (let [tag (fn [x] (or (:tag (meta x)) Object))
         psig (fn [[name [& args]]]
@@ -60,7 +62,7 @@
                  ;; change: add meta
                  (with-meta name
                    (merge
-                     `~{java.lang.annotation.Retention RetentionPolicy/RUNTIME
+                    `~{java.lang.annotation.Retention java.lang.annotation.RetentionPolicy/RUNTIME
                         io.temporal.activity.ActivityMethod true ;; let it be
                         ;; overriden if necessary
                         }
@@ -69,7 +71,7 @@
         cname (with-meta (symbol (str (namespace-munge *ns*) "." name))
                 ;; change - add meta by default
                 (merge
-                  '{java.lang.annotation.Retention RetentionPolicy/RUNTIME
+                 '{java.lang.annotation.Retention java.lang.annotation.RetentionPolicy/RUNTIME
                     io.temporal.activity.ActivityInterface true}
                   (meta name)))]
     ;; (println "interface name " (into {} (seq (meta cname))))
