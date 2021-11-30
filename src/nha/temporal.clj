@@ -302,38 +302,24 @@
       :factory factory
       :worker  worker})))
 
-(defn stop-component [{:keys [service client factory worker test-environment] :as m}]
-(let [^GreetingWorkflow workflow (.newWorkflowStub client
-                                                        GreetingWorkflow
-                                                        (-> (WorkflowOptions/newBuilder)
-                                                            (.setWorkflowId workflow-id)
-                                                            (.setTaskQueue task-queue)
-                                                            (.build)))]
+(defn stop-component
+  ([c] (stop-component nil))
+  ([{:keys [service
+            ;client
+            factory
+            ;worker
+            ] :as c}
+    {:keys [factory-await-long
+            factory-await-timeunit
+            service-await-long
+            service-await-timeunit] :as opts}]
+   (when factory
+     (.shutdown factory)
+     (.awaitTermination factory (or factory-await-long 1) (or factory-await-timeunit TimeUnit/SECONDS)))
 
-       (is (= "HELLO WORLD" (.getGreeting workflow "WORLD")))
-       ;; (is (= "HELLO NICO" (.getGreeting workflow "NICO")))
-
-       (println "TEST DONE")
-
-       ;; test-env
-       ;; service
-       ;; client
-       ;; factory
-       ;; worker
-
-       (when-not ci?
-         (.shutdown factory)
-         (.awaitTermination factory 1 TimeUnit/SECONDS))
-
-       ;; client here
-
-       (if ci?
-         (.close test-environment)
-         (do
-           (.shutdown service)
-           (Thread/sleep 100)
-           (.shutdownNow service)
-           (.awaitTermination service 1 TimeUnit/SECONDS))))
-  m)
-
-
+   (when service
+     (.shutdown service)
+     (.awaitTermination service (or service-await-long 1) (or service-await-timeunit TimeUnit/SECONDS))
+     ;; (.shutdownNow service)
+     )
+   c))
