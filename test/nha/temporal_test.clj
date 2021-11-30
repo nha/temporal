@@ -478,23 +478,12 @@
 
     (println "COMPONENT STARTED ")
 
-    (let [^GreetingWorkflow workflow (.newWorkflowStub client
+    (let [^GreetingWorkflow workflow (sut/network-stub client
                                                        GreetingWorkflow
-                                                       (-> (WorkflowOptions/newBuilder)
-                                                           (.setWorkflowId workflow-id)
-                                                           (.setTaskQueue task-queue)
-                                                           (.build)))]
+                                                       (sut/workflow-options task-queue workflow-id))]
 
       (is (= "HELLO WORLD" (.getGreeting workflow "WORLD")))
-      ;; (is (= "HELLO NICO" (.getGreeting workflow "NICO")))
-
       (println "TEST DONE")
-
-      ;; test-env
-      ;; service
-      ;; client
-      ;; factory
-      ;; worker
 
       (if ci?
         (testsut/stop-component component)

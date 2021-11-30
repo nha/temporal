@@ -323,3 +323,19 @@
      ;; (.shutdownNow service)
      )
    c))
+
+
+(defn workflow-options
+  ^WorkflowOptions
+  [task-queue workflow-id]
+  (-> (WorkflowOptions/newBuilder)
+      (.setWorkflowId workflow-id)
+      (.setTaskQueue task-queue)
+      (.build)))
+
+(defn network-stub [^WorkflowClient client
+                    YourWorkflowImpl
+                    ^WorkflowOptions workflow-opts]
+  (.newWorkflowStub client
+                    YourWorkflowImpl
+                    workflow-opts))
