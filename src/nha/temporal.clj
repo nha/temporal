@@ -1,13 +1,14 @@
 (ns nha.temporal
   (:import
    [io.temporal.activity ActivityInterface ActivityMethod ActivityOptions]
-   [io.temporal.client WorkflowClient WorkflowOptions]
+   [io.temporal.client WorkflowClient WorkflowOptions WorkflowClientOptions]
    [io.temporal.common RetryOptions]
    [io.temporal.serviceclient WorkflowServiceStubs WorkflowServiceStubsOptions]
    [io.temporal.worker Worker WorkerFactory WorkerOptions WorkerFactoryOptions]
    [io.temporal.workflow Workflow WorkflowInterface WorkflowMethod]
    [java.lang.annotation Retention RetentionPolicy Target ElementType]
-   [java.time Duration]))
+   [java.time Duration]
+   [java.util.concurrent TimeUnit]))
 
 ;; macros to reduce annotations
 
@@ -16,6 +17,7 @@
   [name & sigs]
   ;; TODO see if imports necessary (and where)
   (import 'java.lang.annotation.Retention)
+  (import 'java.lang.annotation.RetentionPolicy)
   (import 'io.temporal.workflow.WorkflowMethod)
   (let [tag (fn [x] (or (:tag (meta x)) Object))
         psig (fn [[name [& args]]]
@@ -23,14 +25,14 @@
                  ;; change: add meta - OK
                  (with-meta name
                    (merge
-                     '{java.lang.annotation.Retention RetentionPolicy/RUNTIME
+                    '{java.lang.annotation.Retention java.lang.annotation.RetentionPolicy/RUNTIME
                       io.temporal.workflow.WorkflowMethod true}
                      (meta name)))
                  (vec (map tag args)) (tag name) (map meta args)))
         cname (with-meta (symbol (str (namespace-munge *ns*) "." name))
                 ;; change - add meta by default - OK
                 (merge
-                  '{java.lang.annotation.Retention RetentionPolicy/RUNTIME
+                 '{java.lang.annotation.Retention java.lang.annotation.RetentionPolicy/RUNTIME
                     io.temporal.workflow.WorkflowInterface true}
                   (meta name)))]
     ;;(println "interface name " (into {} (seq (meta cname))))
@@ -52,6 +54,7 @@
   [name & sigs]
   ;; TODO see if imports necessary (and where)
   (import 'java.lang.annotation.Retention)
+  (import 'java.lang.annotation.RetentionPolicy)
   (import 'io.temporal.activity.ActivityInterface)
   (let [tag (fn [x] (or (:tag (meta x)) Object))
         psig (fn [[name [& args]]]
@@ -59,7 +62,7 @@
                  ;; change: add meta
                  (with-meta name
                    (merge
-                     `~{java.lang.annotation.Retention RetentionPolicy/RUNTIME
+                    `~{java.lang.annotation.Retention java.lang.annotation.RetentionPolicy/RUNTIME
                         io.temporal.activity.ActivityMethod true ;; let it be
                         ;; overriden if necessary
                         }
@@ -68,7 +71,7 @@
         cname (with-meta (symbol (str (namespace-munge *ns*) "." name))
                 ;; change - add meta by default
                 (merge
-                  '{java.lang.annotation.Retention RetentionPolicy/RUNTIME
+                 '{java.lang.annotation.Retention java.lang.annotation.RetentionPolicy/RUNTIME
                     io.temporal.activity.ActivityInterface true}
                   (meta name)))]
     ;; (println "interface name " (into {} (seq (meta cname))))
@@ -205,6 +208,7 @@
      })
   all entries are optional
   "
+  ^WorkerFactoryOptions
   [{:keys [enable-logging-in-replay
            max-workflow-thread-count
            workflow-cache-size
@@ -223,6 +227,7 @@
 
 (defn workflow-service-stubs-opts
   "Helper to create a WorkflowServiceStubsOptions"
+  ^WorkflowServiceStubsOptions
   [{:keys [target]}]
   (.build
     (cond-> (WorkflowServiceStubsOptions/newBuilder)
@@ -235,3 +240,104 @@
    (WorkflowServiceStubs/newInstance))
   ([^WorkflowServiceStubsOptions opts]
    (WorkflowServiceStubs/newInstance opts)))
+
+(defn client-ops
+  ^WorkflowClientOptions
+  ([] (-> (WorkflowClientOptions/newBuilder)
+          (.build)))
+  ([{:keys []}]
+   (-> (WorkflowClientOptions/newBuilder)
+       (.build))))
+
+(defn workflow-client
+  ([^WorkflowServiceStubs service]
+   (WorkflowClient/newInstance service
+                               ))
+  ([^WorkflowServiceStubs service ^WorkflowClientOptions opts]
+   (WorkflowClient/newInstance service opts)))
+
+(defn worker-factory
+  ^WorkerFactory
+  ([^WorkflowClient client] (WorkerFactory/newInstance client))
+  ([^WorkflowClient client ^WorkerFactoryOptions factory-opts] (WorkerFactory/newInstance client factory-opts)))
+
+(defn new-worker
+  ([^WorkerFactory factory ^String task-queue]
+   (.newWorker factory task-queue))
+  ([^WorkerFactory factory ^String task-queue ^WorkerOptions worker-opts]
+   (.newWorker factory task-queue worker-opts)))
+
+(defn component
+  "higher-level fn: returns a map suitable for making a stuartsierra/component or similar.
+  task-queue: String, the name of the task queue
+
+  opts: options for the subcomponents. all optional.
+    service-opts: an instance of WorkflowServiceStubsOptions (can use `workflow-service-stubs-opts` to produce it)
+    client-opts: an instance of WorkflowClientOptions (can use `client-ops` to get and instance of WorkflowClientOptions)
+    factory-opts: an instance of WorkerFactoryOptions (can use `worker-factory-opts` to get and instance of WorkerFactoryOptions)
+    worker-opts: an instance of WorkerOptions (can use `worker-opts` to get and instance of WorkerOptions)
+  "
+  ([^String task-queue implementation-types activities-impls] (component task-queue implementation-types activities-impls nil))
+  ([^String task-queue
+    implementation-types
+    activities-impls
+    {:keys [service-opts client-opts factory-opts worker-opts] :as opts}]
+   (let [^WorkflowServiceStubs service (if service-opts
+                                         (workflow-service-stubs service-opts)
+                                         (workflow-service-stubs))
+         ^WorkflowClient client        (if client-opts
+                                         (workflow-client service client-opts)
+                                         (workflow-client service))
+         ^WorkerFactory factory        (if factory-opts
+                                         (worker-factory client factory-opts)
+                                         (worker-factory client))
+         ^Worker worker                (if worker-opts
+                                         (new-worker factory task-queue worker-opts)
+                                         (new-worker factory task-queue))]
+
+     (.registerWorkflowImplementationTypes worker (into-array implementation-types))
+     (.registerActivitiesImplementations worker  (into-array activities-impls))
+     (.start factory)
+
+     {:service service
+      :client  client
+      :factory factory
+      :worker  worker})))
+
+(defn stop-component
+  ([c] (stop-component c nil))
+  ([{:keys [service
+            ;client
+            factory
+            ;worker
+            ] :as c}
+    {:keys [factory-await-long
+            factory-await-timeunit
+            service-await-long
+            service-await-timeunit] :as opts}]
+   (when factory
+     (.shutdown factory)
+     (.awaitTermination factory (or factory-await-long 1) (or factory-await-timeunit TimeUnit/SECONDS)))
+
+   (when service
+     (.shutdown service)
+     (.awaitTermination service (or service-await-long 1) (or service-await-timeunit TimeUnit/SECONDS))
+     ;; (.shutdownNow service)
+     )
+   c))
+
+
+(defn workflow-options
+  ^WorkflowOptions
+  [task-queue workflow-id]
+  (-> (WorkflowOptions/newBuilder)
+      (.setWorkflowId workflow-id)
+      (.setTaskQueue task-queue)
+      (.build)))
+
+(defn network-stub [^WorkflowClient client
+                    YourWorkflowImpl
+                    ^WorkflowOptions workflow-opts]
+  (.newWorkflowStub client
+                    YourWorkflowImpl
+                    workflow-opts))
