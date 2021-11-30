@@ -41,9 +41,9 @@ If you must, here is the [greetings sample](https://github.com/temporalio/sample
                    (composeGreeting [this greetings n]
                      (str greetings n))))
 
-(let [{:keys [client] :as component} (t/component task-queue
-                                                  [(class my-workflow)]
-                                                  [my-activity])]
+(let [{:keys [client] :as component} (-> (t/component task-queue)
+                                         (t/start-component [(class my-workflow)]
+                                                            [my-activity]))]
   (let [^GreetingWorkflow workflow (t/network-stub client
                                                    GreetingWorkflow
                                                    (t/workflow-options task-queue workflow-id))]
