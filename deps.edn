@@ -1,7 +1,8 @@
 {:paths   ["src" "resources"]
  :deps    {org.clojure/clojure      {:mvn/version "1.10.3"}
            io.temporal/temporal-sdk {:mvn/version "1.5.0"}}
- :aliases {:build {:deps       {io.github.clojure/tools.build {:git/tag "v0.6.8" :git/sha "d79ae84"}}
+ :aliases {:build {:deps       {io.github.clojure/tools.build {:git/tag "v0.6.8" :git/sha "d79ae84"}
+                                io.github.seancorfield/build-clj {:git/tag "v0.6.5" :git/sha "972031a"}}
                    :ns-default build}
            :dev   {:extra-paths ["dev"]
                    :extra-deps  {cider/cider-nrepl            {:mvn/version "0.27.2"}
@@ -11,5 +12,13 @@
                    :extra-deps  {org.clojure/test.check       {:mvn/version "1.1.0"}
                                  lambdaisland/kaocha          {:mvn/version "1.60.945"}
                                  io.temporal/temporal-testing {:mvn/version "1.5.0"}}
-                   :main-opts   ["-m" "kaocha.runner"]}}}
+                   :main-opts   ["-m" "kaocha.runner"]}
+           :deploy {:extra-deps {slipset/deps-deploy {:mvn/version "RELEASE"}}
+                    :exec-fn    deps-deploy.deps-deploy/deploy
+                    :exec-args  {;:installer      :remote
+                                 :installer :local
+                                 ;;:sign-releases? true
+                                 :artifact       "deps-deploy.jar"
+                                 }}
+           }}
 
