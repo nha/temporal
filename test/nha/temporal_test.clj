@@ -226,16 +226,15 @@
 
         {:keys [test-env service client factory worker] :as component}
         (if ci?
-          (testsut/test-component task-queue
-                                  [(class reified-workflow)]
-                                  [my-activity]
-                                  (assoc opts :test-env-opts (testsut/test-env-opts opts)))
-          (sut/component task-queue
-                         [;; either of these work
-                          ;; GreetingWorkflowImplStep4
-                          (class reified-workflow)]
-                         [my-activity]
-                         opts))]
+          (-> (testsut/test-component task-queue
+                                      (assoc opts :test-env-opts (testsut/test-env-opts opts)))
+              (testsut/start-component [(class reified-workflow)]
+                                       [my-activity]))
+          (-> (sut/component task-queue opts)
+              (sut/start-component [;; either of these work
+                                    ;; GreetingWorkflowImplStep4
+                                    (class reified-workflow)]
+                                   [my-activity])))]
 
     (println "COMPONENT STARTED ")
 

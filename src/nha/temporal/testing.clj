@@ -45,12 +45,9 @@
   test-env-opts: TestEnvironmentOptions (use `test-env-opts`)
   worker-opts:
   "
-  ([^String task-queue implementation-types activities-impls]
-   (test-component task-queue implementation-types activities-impls nil))
-  ([^String task-queue
-    implementation-types
-    activities-impls
-    {:keys [test-env-opts worker-opts] :as opts}]
+  ([^String task-queue]
+   (test-component task-queue nil))
+  ([^String task-queue {:keys [test-env-opts worker-opts] :as opts}]
    (let [^TestWorkflowEnvironment test-env (if test-env-opts
                                              (test-workflow-env test-env-opts)
                                              (test-workflow-env))
@@ -60,16 +57,20 @@
          ^Worker worker                    (if worker-opts
                                              (new-worker test-env task-queue worker-opts)
                                              (new-worker test-env task-queue))]
-
-     (.registerWorkflowImplementationTypes worker (into-array implementation-types))
-     (.registerActivitiesImplementations worker  (into-array activities-impls))
-     (.start test-env)
-
      {:test-env test-env
       ;;:service service
       :client   client
       ;;:factory factory
       :worker   worker})))
+
+
+(defn start-component [{:keys [test-env worker] :as component}
+                       implementation-types
+                       activities-impls]
+  (.registerWorkflowImplementationTypes worker (into-array implementation-types))
+  (.registerActivitiesImplementations worker  (into-array activities-impls))
+  (.start test-env)
+  component)
 
 (defn stop-component
   [{:keys [test-env] :as c}]

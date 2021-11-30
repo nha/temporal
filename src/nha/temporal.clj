@@ -277,10 +277,8 @@
     factory-opts: an instance of WorkerFactoryOptions (can use `worker-factory-opts` to get and instance of WorkerFactoryOptions)
     worker-opts: an instance of WorkerOptions (can use `worker-opts` to get and instance of WorkerOptions)
   "
-  ([^String task-queue implementation-types activities-impls] (component task-queue implementation-types activities-impls nil))
+  ([^String task-queue] (component task-queue nil))
   ([^String task-queue
-    implementation-types
-    activities-impls
     {:keys [service-opts client-opts factory-opts worker-opts] :as opts}]
    (let [^WorkflowServiceStubs service (if service-opts
                                          (workflow-service-stubs service-opts)
@@ -294,15 +292,18 @@
          ^Worker worker                (if worker-opts
                                          (new-worker factory task-queue worker-opts)
                                          (new-worker factory task-queue))]
-
-     (.registerWorkflowImplementationTypes worker (into-array implementation-types))
-     (.registerActivitiesImplementations worker  (into-array activities-impls))
-     (.start factory)
-
      {:service service
       :client  client
       :factory factory
       :worker  worker})))
+
+(defn start-component [{:keys [factory worker] :as component}
+                       implementation-types
+                       activities-impls]
+  (.registerWorkflowImplementationTypes worker (into-array implementation-types))
+  (.registerActivitiesImplementations worker  (into-array activities-impls))
+  (.start factory)
+  component)
 
 (defn stop-component
   ([c] (stop-component c nil))
