@@ -1,37 +1,43 @@
 (ns nha.readme-test
-  (:require [clojure.test :refer [deftest is]]
+  (:require [clojure.test :refer [deftest is testing]]
             [nha.temporal :as t]))
 
-(deftest readme-test
+(comment
+  ;; this talks to a real service that has to be installed locally
+  ;; so comment for now
 
-  (def task-queue "HelloActivityTaskQueue")
-  (def workflow-id "HelloActivityWorkflow")
+  (deftest readme-test
+    (testing "example from the README works "
 
-  (t/def-workflow-interface
-    GreetingWorkflow
-    (^String getGreeting [param-not-this] "say something yo"))
-  
-  (t/def-activity-interface
-    GreetingActivities
-    (composeGreeting [^String greeting ^String n]))
+      (def task-queue "HelloActivityTaskQueue")
+      (def workflow-id "HelloActivityWorkflow")
 
-  (def reified-workflow
-    (reify GreetingWorkflow
-      (getGreeting [this s]
-        (let [a (t/activity-stub GreetingActivities)]
-          (.composeGreeting a "HELLO " s)))))
-  
-  (let [{:keys [test-env service client factory worker] :as component}
-        (t/component task-queue
-                     [(class reified-workflow)]
-                     [my-activity])]
-    (let [^GreetingWorkflow workflow (t/network-stub client
-                                                     GreetingWorkflow
-                                                     (t/workflow-options task-queue workflow-id))]
+      (t/def-workflow-interface
+        GreetingWorkflow
+        (^String getGreeting [param-not-this] "say something yo"))
 
+      (t/def-activity-interface
+        GreetingActivities
+        (composeGreeting [^String greeting ^String n]))
 
-      (println (.getGreeting workflow "WORLD")) ;; will print "HELLO WORLD"
-      )
+      (def my-workflow
+        (reify GreetingWorkflow
+          (getGreeting [this s]
+            (let [a (t/activity-stub GreetingActivities)]
+              (.composeGreeting a "HELLO " s)))))
 
-    (t/stop-component component))
-  )
+      (def my-activity (reify GreetingActivities
+                         (composeGreeting [this greetings n]
+                           (str greetings n))))
+
+      (let [{:keys [client] :as component} (t/component task-queue
+                                                        [(class my-workflow)]
+                                                        [my-activity])]
+        (let [^GreetingWorkflow workflow (t/network-stub client
+                                                         GreetingWorkflow
+                                                         (t/workflow-options task-queue workflow-id))]
+          (println (.getGreeting workflow "WORLD")) ;; will print "HELLO WORLD"
+          )
+
+        (t/stop-component component)))
+    ))
