@@ -24,10 +24,10 @@
 
 (defn test-workflow-env
   ^TestWorkflowEnvironment
-  [{:keys [test-env-opts]}]
-  (if test-env-opts
-    (TestWorkflowEnvironment/newInstance test-env-opts)
-    (TestWorkflowEnvironment/newInstance)))
+  ([]
+   (TestWorkflowEnvironment/newInstance))
+  ([^TestEnvironmentOptions test-env-opts]
+   (TestWorkflowEnvironment/newInstance test-env-opts)))
 
 (defn get-workflow-client [^TestWorkflowEnvironment test-env]
   (.getWorkflowClient test-env))
@@ -40,14 +40,20 @@
 
 (defn test-component
   "higher-level fn: returns a map suitable for making a stuartsierra/component or similar
-  similar to the `nha.temporal/component` function, but suitable for tests so that a real service does not have to be reachable"
+  similar to the `nha.temporal/component` function, but suitable for tests so that a real service does not have to be reachable
+
+  test-env-opts: TestEnvironmentOptions (use `test-env-opts`)
+  worker-opts:
+  "
   ([^String task-queue implementation-types activities-impls]
    (test-component task-queue implementation-types activities-impls nil))
   ([^String task-queue
     implementation-types
     activities-impls
-    {:keys [worker-opts] :as opts}]
-   (let [^TestWorkflowEnvironment test-env (test-workflow-env (test-env-opts opts))
+    {:keys [test-env-opts worker-opts] :as opts}]
+   (let [^TestWorkflowEnvironment test-env (if test-env-opts
+                                             (test-workflow-env test-env-opts)
+                                             (test-workflow-env))
          ;;^WorkflowServiceStubs service     nil
          ^WorkflowClient client            (get-workflow-client test-env)
          ;;^WorkerFactory factory            nil

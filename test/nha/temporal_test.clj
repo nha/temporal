@@ -1,7 +1,8 @@
 (ns nha.temporal-test
   (:require
    [clojure.test :refer [deftest testing is are]]
-   [nha.temporal :as sut])
+   [nha.temporal :as sut]
+   [nha.temporal.testing :as testsut])
   (:import
    [io.temporal.activity Activity ActivityInterface ActivityMethod ActivityOptions]
    [io.temporal.client WorkflowClient WorkflowOptions WorkflowClientOptions]
@@ -452,7 +453,20 @@
 (deftest run-workflow
   (println "in CI? " (in-ci?))
 
-  (let [^TestWorkflowEnvironment test-environment (when (in-ci?)
+  (let [ci? (in-ci?)
+        {:keys [test-env service client factory worker]} (if ci?
+                                                           (testsut/test-component task-queue
+                                                                                   [(class reified-workflow)]
+                                                                                   [my-activity]
+                                                                                   {:factory-opts test-factory-opts})
+                                                           (sut/component task-queue
+                                                                          [;; either of these work
+                                                                           ;; GreetingWorkflowImplStep4
+                                                                           (class reified-workflow)]
+                                                                          [my-activity]
+                                                                          {:service-opts nil})
+                                                           )
+        ^TestWorkflowEnvironment test-environment (when (in-ci?)
                                                     (TestWorkflowEnvironment/newInstance (->(TestEnvironmentOptions/newBuilder)
                                                                                             (.setWorkerFactoryOptions test-factory-opts)
                                                                                             ;;(.setWorkflowClientOptions test-worker-opts)
