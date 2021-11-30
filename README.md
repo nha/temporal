@@ -20,7 +20,6 @@ If you must, here is the greetings sample translated:
 (def task-queue "HelloActivityTaskQueue")
 (def workflow-id "HelloActivityWorkflow")
 
-
 (t/def-workflow-interface
   GreetingWorkflow
   (^String getGreeting [param-not-this] "say something yo"))
@@ -39,9 +38,15 @@ If you must, here is the greetings sample translated:
       (sut/component task-queue
                          [(class reified-workflow)]
                          [my-activity])]
+        (let [^GreetingWorkflow workflow (sut/network-stub client
+                                                       GreetingWorkflow
+                                                       (sut/workflow-options task-queue workflow-id))]
+
+
+(println (.getGreeting workflow "WORLD")) ;; will print "HELLO WORLD"
+      )                 
                          
-                         
-                         )
+       (sut/stop-component component))
         
 ...
 ```

@@ -471,11 +471,6 @@
                          [my-activity]
                          opts))]
 
-    (def component {:service service
-                    :client  client
-                    :factory factory
-                    :worker  worker})
-
     (println "COMPONENT STARTED ")
 
     (let [^GreetingWorkflow workflow (sut/network-stub client
@@ -483,9 +478,8 @@
                                                        (sut/workflow-options task-queue workflow-id))]
 
       (is (= "HELLO WORLD" (.getGreeting workflow "WORLD")))
-      (println "TEST DONE")
+      (println "TEST DONE"))
 
-      (if ci?
-        (testsut/stop-component component)
-        (sut/stop-component component))
-      )))
+    (if ci?
+      (testsut/stop-component component)
+      (sut/stop-component component))))
