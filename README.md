@@ -15,6 +15,8 @@ If you must, here is the greetings sample translated:
 
 ```clojure
 
+(:require [nha.temporal :as t])
+
 (def task-queue "HelloActivityTaskQueue")
 (def workflow-id "HelloActivityWorkflow")
 
@@ -32,6 +34,14 @@ If you must, here is the greetings sample translated:
     (getGreeting [this s]
       (let [a (t/activity-stub GreetingActivities)]
         (.composeGreeting a "HELLO " s)))))
+        
+(let [{:keys [test-env service client factory worker] :as component}
+      (sut/component task-queue
+                         [(class reified-workflow)]
+                         [my-activity])]
+                         
+                         
+                         )
         
 ...
 ```
