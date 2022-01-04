@@ -1,5 +1,7 @@
 # temporal
 
+[![Clojars Project](https://img.shields.io/clojars/v/org.clojars.nha/temporal.svg)](https://clojars.org/org.clojars.nha/temporal)
+
 [temporal.io](http://temporal.io/) (Uber Cadence successor) in Clojure.
 
 This is a library to help using the [temporal java SDK](https://github.com/temporalio/sdk-java) by introducing helpers macros and functions.
@@ -7,6 +9,9 @@ This is a library to help using the [temporal java SDK](https://github.com/tempo
 ## Installation
 
 [net.clojars.nha/temporal](https://clojars.org/nha/temporal)
+
+The versionning is comprised of the temporal java version used followed by the number of commits in this projects.
+For example version `1.5.0.7` means the temporal java version used is 1.5.0 and there are 7 commits in this repository.
 
 ## Usage
 
