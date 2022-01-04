@@ -30,4 +30,4 @@ jobs:
 
       - name: Run CI tests
         # run: clojure -M:test
-        run: cljojure -T:build ci
+        run: clojure -T:build ci
