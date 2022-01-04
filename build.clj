@@ -2,7 +2,7 @@
   (:require [clojure.tools.build.api :as b]
             [org.corfield.build :as bb]))
 
-(def lib 'nha/temporal)
+(def lib 'org.clojars.nha/temporal)
 ;; temporal SDK version first
 (def version (format "1.5.0.%s" (b/git-count-revs nil)))
 ;; (def class-dir "target/classes")
