@@ -185,6 +185,28 @@
 
           "KO")))))
 
+;; or even defrecord
+(defrecord MyWorkflowImpl []
+  GreetingWorkflow
+  (getGreeting [this s]
+    (try
+      (let [actv
+            (sut/activity-stub
+             GreetingActivities
+             (sut/activity-opts {:start-to-close-timeout (Duration/ofSeconds 2)
+                                 :retry-options          (sut/retry-options {:backoff-coefficient 2
+                                                                             :maximum-attempts    2
+                                                                             :do-not-retry-coll   ["noretry"]})}))]
+        (println "GOT ACTIVITY ") ;; NOTE: cannot print actv
+        (.composeGreeting actv "HELLO " s))
+      (catch Exception ex
+        (println "ERROR - " ex)
+
+        ;; could also do this
+        ;; (throw (Activity/wrap ex))
+
+        "KO"))))
+
 
 ;; https://github.com/temporalio/samples-java/blob/d92d48ca4431d6ea6af564a2d303fad9a9d3521b/src/main/java/io/temporal/samples/hello/HelloActivity.java#L109-L114
 
@@ -233,7 +255,8 @@
           (-> (sut/component task-queue opts)
               (sut/start-component [;; either of these work
                                     ;; GreetingWorkflowImplStep4
-                                    (class reified-workflow)]
+                                    ;;(class reified-workflow)
+                                    MyWorkflowImpl]
                                    [my-activity])))]
 
     (println "COMPONENT STARTED ")

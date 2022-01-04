@@ -1,5 +1,7 @@
 # temporal
 
+[![Clojars Project](https://img.shields.io/clojars/v/org.clojars.nha/temporal.svg)](https://clojars.org/org.clojars.nha/temporal)
+
 [temporal.io](http://temporal.io/) (Uber Cadence successor) in Clojure.
 
 This is a library to help using the [temporal java SDK](https://github.com/temporalio/sdk-java) by introducing helpers macros and functions.
@@ -8,9 +10,13 @@ This is a library to help using the [temporal java SDK](https://github.com/tempo
 
 [net.clojars.nha/temporal](https://clojars.org/nha/temporal)
 
+The versionning is comprised of the temporal java version used followed by the number of commits in this projects.
+For example version `1.5.0.7` means the temporal java version used is 1.5.0 and there are 7 commits in this repository.
+
 ## Usage
 
-Don't. At least not yet.
+Status: Alpha
+
 If you must, here is the [greetings sample](https://github.com/temporalio/samples-java/blob/main/src/main/java/io/temporal/samples/hello/HelloActivity.java) translated:
 
 ```clojure
@@ -18,7 +24,7 @@ If you must, here is the [greetings sample](https://github.com/temporalio/sample
 (ns your.ns
   (:require [nha.temporal :as t])
   (:import [java.time Duration]))
-
+  
 (def task-queue "HelloActivityTaskQueue")
 (def workflow-id "HelloActivityWorkflow")
 
@@ -30,26 +36,24 @@ If you must, here is the [greetings sample](https://github.com/temporalio/sample
   GreetingActivities
   (composeGreeting [^String greeting ^String n]))
 
-(def my-workflow
-  (reify GreetingWorkflow
-    (getGreeting [this s]
-      (let [actv (t/activity-stub GreetingActivities
-                                  (t/activity-opts {:start-to-close-timeout (Duration/ofSeconds 2)}))]
-        (.composeGreeting actv "HELLO " s)))))
+(defrecord MyWorkflowImpl []
+  GreetingWorkflow
+  (getGreeting [this s]
+    (let [actv (t/activity-stub
+                GreetingActivities
+                (t/activity-opts {:start-to-close-timeout (Duration/ofSeconds 2)}))]
+      (.composeGreeting actv "HELLO " s))))
 
-(def my-activity (reify GreetingActivities
-                   (composeGreeting [this greetings n]
-                     (str greetings n))))
+(defrecord MyActivityImpl []
+  GreetingActivities
+  (composeGreeting [this greetings n]
+    (str greetings n)))
 
 (let [{:keys [client] :as component} (-> (t/component task-queue)
-                                         (t/start-component [(class my-workflow)]
-                                                            [my-activity]))]
-  (let [^GreetingWorkflow workflow (t/network-stub client
-                                                   GreetingWorkflow
-                                                   (t/workflow-options task-queue workflow-id))]
-
-    (println (.getGreeting workflow "WORLD")) ;; <= will print "HELLO WORLD"
-    )
+                                         (t/start-component [MyWorkflowImpl] [(MyActivityImpl.)]))]
+  (let [^GreetingWorkflow workflow (t/network-stub client GreetingWorkflow (t/workflow-options task-queue workflow-id))]
+    ;; this will print "HELLO WORLD"
+    (println (.getGreeting workflow "WORLD")))
   (t/stop-component component))
 
 ```
@@ -63,6 +67,11 @@ Start a REPL with:
 Run the project's tests:
 
     $ clojure -M:test
+
+Deploy:
+    $ export CLOJARS_USER=username
+    $ export CLOJARS_PASS=clojars-token 
+    $  clj -T:build ci && clj -T:build install && clj -T:build deploy
 
 ## License
 
