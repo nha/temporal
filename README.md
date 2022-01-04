@@ -15,7 +15,8 @@ For example version `1.5.0.7` means the temporal java version used is 1.5.0 and 
 
 ## Usage
 
-Don't. At least not yet.
+Status: Alpha
+
 If you must, here is the [greetings sample](https://github.com/temporalio/samples-java/blob/main/src/main/java/io/temporal/samples/hello/HelloActivity.java) translated:
 
 ```clojure
