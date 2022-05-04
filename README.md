@@ -68,7 +68,7 @@ Run the project's tests:
 
     $ clojure -M:test
 
-Deploy:
+Deploy (on the `main` branch):
 
     $ export CLOJARS_USER=username
     $ export CLOJARS_PASS=clojars-token
