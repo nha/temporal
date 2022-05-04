@@ -11,7 +11,7 @@ This is a library to help using the [temporal java SDK](https://github.com/tempo
 [net.clojars.nha/temporal](https://clojars.org/nha/temporal)
 
 The versionning is comprised of the temporal java version used followed by the number of commits in this projects.
-For example version `1.5.0.7` means the temporal java version used is 1.5.0 and there are 7 commits in this repository.
+For example version `1.5.0.7` of `nha/temporal` means the temporal java version used is `1.5.0` and there are `7` commits in this repository.
 
 ## Usage
 
