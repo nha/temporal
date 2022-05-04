@@ -11,7 +11,7 @@ This is a library to help using the [temporal java SDK](https://github.com/tempo
 [net.clojars.nha/temporal](https://clojars.org/nha/temporal)
 
 The versionning is comprised of the temporal java version used followed by the number of commits in this projects.
-For example version `1.5.0.7` means the temporal java version used is 1.5.0 and there are 7 commits in this repository.
+For example version `1.5.0.7` of `nha/temporal` means the temporal java version used is `1.5.0` and there are `7` commits in this repository.
 
 ## Usage
 
@@ -24,7 +24,7 @@ If you must, here is the [greetings sample](https://github.com/temporalio/sample
 (ns your.ns
   (:require [nha.temporal :as t])
   (:import [java.time Duration]))
-  
+
 (def task-queue "HelloActivityTaskQueue")
 (def workflow-id "HelloActivityWorkflow")
 
@@ -68,11 +68,12 @@ Run the project's tests:
 
     $ clojure -M:test
 
-Deploy:
+Deploy (on the `main` branch):
+
     $ export CLOJARS_USER=username
-    $ export CLOJARS_PASS=clojars-token 
+    $ export CLOJARS_PASS=clojars-token
     $  clj -T:build ci && clj -T:build install && clj -T:build deploy
 
 ## License
 
-Copyright © 2021 Nicolas.ha
+Copyright © 2022 Nicolas.ha

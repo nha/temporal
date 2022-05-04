@@ -173,7 +173,6 @@
            max-concurrent-local-activity-execution-size
            activity-poll-thread-count
            default-deadlock-detection-timeout
-           max-concurrent-activity-execution-size
            local-activity-worker-only?
            max-task-queue-activities-per-second
            max-worker-activities-per-second
