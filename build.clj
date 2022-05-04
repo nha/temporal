@@ -36,6 +36,8 @@
   needs CLOJARS_USERNAME and CLOJARS_PASSWORD
   as well as the jar"
   [opts]
-  (-> opts
-      (bb-opts)
-      (bb/deploy)))
+  (let [o (bb-opts opts)]
+    (assert (System/getenv "CLOJARS_USERNAME"))
+    (assert (System/getenv "CLOJARS_PASSWORD"))
+    (println "Deploying version " o)
+    (bb/deploy o)))

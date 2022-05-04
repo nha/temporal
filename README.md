@@ -70,8 +70,8 @@ Run the project's tests:
 
 Deploy (on the `main` branch):
 
-    $ export CLOJARS_USER=username
-    $ export CLOJARS_PASS=clojars-token
+    $ export CLOJARS_USERNAME=username
+    $ export CLOJARS_PASSWORD=clojars-token
     $  clj -T:build ci && clj -T:build install && clj -T:build deploy
 
 ## License
