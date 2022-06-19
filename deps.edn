@@ -1,19 +1,19 @@
 {:paths   ["src" "resources"]
  :deps    {org.clojure/clojure      {:mvn/version "1.11.1"}
            io.temporal/temporal-sdk {:mvn/version "1.12.0"}}
- :aliases {:eastwood {:extra-deps {jonase/eastwood {:mvn/version "1.2.3"}}
+ :aliases {:eastwood {:extra-deps {jonase/eastwood {:mvn/version "1.2.4"}}
                         :main-opts  ["-m" "eastwood.lint" "{:source-paths,[\"src\"]}"]}
-           :build {:deps       {io.github.clojure/tools.build {:git/tag "v0.8.1" :git/sha "7d40500"}
-                                io.github.seancorfield/build-clj {:git/tag "v0.8.0" :git/sha "9bd8b8a"}}
+           :build {:deps       {io.github.clojure/tools.build {:git/tag "v0.8.2" :git/sha "ba1a2bf421838802e7bdefc541b41f57582e53b6"}
+                                io.github.seancorfield/build-clj {:git/tag "v0.8.2" :git/sha "0ffdb4c0f2cd7ef484458502b926fbe63efe540b"}}
                    :ns-default build}
            :dev   {:extra-paths ["dev"]
-                   :extra-deps  {cider/cider-nrepl            {:mvn/version "0.28.3"}
-                                 io.temporal/temporal-testing {:mvn/version "1.11.0"}}
+                   :extra-deps  {cider/cider-nrepl            {:mvn/version "0.28.5"}
+                                 io.temporal/temporal-testing {:mvn/version "1.12.0"}}
                    :main-opts   ["-m" "nrepl.cmdline" "--middleware" "[cider.nrepl/cider-middleware]"]}
            :test  {:extra-paths ["test"]
                    :extra-deps  {org.clojure/test.check       {:mvn/version "1.1.1"}
-                                 lambdaisland/kaocha          {:mvn/version "1.66.1034"}
-                                 io.temporal/temporal-testing {:mvn/version "1.11.0"}}
+                                 lambdaisland/kaocha          {:mvn/version "v1.67.1055"}
+                                 io.temporal/temporal-testing {:mvn/version "1.12.0"}}
                    :main-opts   ["-m" "kaocha.runner"]}
            :deploy {:extra-deps {slipset/deps-deploy {:mvn/version "RELEASE"}}
                     :exec-fn    deps-deploy.deps-deploy/deploy
