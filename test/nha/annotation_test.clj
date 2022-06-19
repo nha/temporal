@@ -374,7 +374,7 @@
                                                                                             (.setWorkerFactoryOptions test-factory-opts)
                                                                                             ;;(.setWorkflowClientOptions test-worker-opts)
                                                                                             (.build))))
-        ^WorkflowServiceStubs service                  (if (in-ci?)
+        ^WorkflowServiceStubs service             (if (in-ci?)
                                                          nil
                                                          (WorkflowServiceStubs/newInstance
                                                            (-> (WorkflowServiceStubsOptions/newBuilder)
@@ -393,52 +393,33 @@
         ^Worker worker (if (in-ci?)
                          (.newWorker test-environment task-queue test-worker-opts)
                          (.newWorker factory task-queue test-worker-opts))]
+    (try
 
-    (def component {:service service
-                    :client  client
-                    :factory factory
-                    :worker  worker})
-
-    (println "WILL REGISTER " component)
-    (.registerWorkflowImplementationTypes worker (into-array [GreetingWorkflowImplStep4]))
-    (println "DID REGISTER ")
-    (.registerActivitiesImplementations worker  (into-array [my-activity]))
-
-    (println "WILL START FACTORY ")
-    (if (in-ci?)
-      (.start test-environment)
-      (.start factory))
-
-    (println "STARTED FACTORY")
-    (let [^GreetingWorkflow workflow (.newWorkflowStub client
-                                                       GreetingWorkflow
-                                                       (-> (WorkflowOptions/newBuilder)
-                                                           (.setWorkflowId workflow-id)
-                                                           (.setTaskQueue task-queue)
-                                                           (.build)))]
-
-      (is (= "HELLO WORLD" (.getGreeting workflow "WORLD")))
-      ;; (is (= "HELLO NICO" (.getGreeting workflow "NICO")))
-
-      (println "TEST DONE")
-
-      ;; test-env
-      ;; service
-      ;; client
-      ;; factory
-      ;; worker
-
-      (when-not (in-ci?)
-        (.shutdown factory)
-        (.awaitTermination factory 1 TimeUnit/SECONDS))
-
-      ;; client here
-
+      (.registerWorkflowImplementationTypes worker (into-array [GreetingWorkflowImplStep4]))
+      (.registerActivitiesImplementations worker  (into-array [my-activity]))
 
       (if (in-ci?)
-        (.close test-environment)
-        (do
-          (.shutdown service)
-          (Thread/sleep 100)
-          (.shutdownNow service)
-          (.awaitTermination service 1 TimeUnit/SECONDS))))))
+        (.start test-environment)
+        (.start factory))
+
+      (let [^GreetingWorkflow workflow (.newWorkflowStub client
+                                                         GreetingWorkflow
+                                                         (-> (WorkflowOptions/newBuilder)
+                                                             (.setWorkflowId workflow-id)
+                                                             (.setTaskQueue task-queue)
+                                                             (.build)))]
+
+        (is (= "HELLO WORLD" (.getGreeting workflow "WORLD"))))
+
+      (finally
+        (when-not (in-ci?)
+          (.shutdown factory)
+          (.awaitTermination factory 1 TimeUnit/SECONDS))
+
+        (if (in-ci?)
+          (.close test-environment)
+          (do
+            (.shutdown service)
+            (Thread/sleep 100)
+            (.shutdownNow service)
+            (.awaitTermination service 1 TimeUnit/SECONDS)))))))
