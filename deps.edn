@@ -1,6 +1,6 @@
 {:paths   ["src" "resources"]
  :deps    {org.clojure/clojure      {:mvn/version "1.11.1"}
-           io.temporal/temporal-sdk {:mvn/version "1.11.0"}}
+           io.temporal/temporal-sdk {:mvn/version "1.12.0"}}
  :aliases {:eastwood {:extra-deps {jonase/eastwood {:mvn/version "1.2.3"}}
                         :main-opts  ["-m" "eastwood.lint" "{:source-paths,[\"src\"]}"]}
            :build {:deps       {io.github.clojure/tools.build {:git/tag "v0.8.1" :git/sha "7d40500"}
