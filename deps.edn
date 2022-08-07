@@ -1,24 +1,24 @@
 {:paths   ["src" "resources"]
  :deps    {org.clojure/clojure      {:mvn/version "1.11.1"}
-           io.temporal/temporal-sdk {:mvn/version "1.12.0"}}
+           io.temporal/temporal-sdk {:mvn/version "1.14.0"}}
  :aliases {:eastwood {:extra-deps {jonase/eastwood {:mvn/version "1.2.4"}}
-                        :main-opts  ["-m" "eastwood.lint" "{:source-paths,[\"src\"]}"]}
-           :build {:deps       {io.github.clojure/tools.build {:git/tag "v0.8.2" :git/sha "ba1a2bf421838802e7bdefc541b41f57582e53b6"}
-                                io.github.seancorfield/build-clj {:git/tag "v0.8.2" :git/sha "0ffdb4c0f2cd7ef484458502b926fbe63efe540b"}}
-                   :ns-default build}
-           :dev   {:extra-paths ["dev"]
-                   :extra-deps  {cider/cider-nrepl            {:mvn/version "0.28.5"}
-                                 io.temporal/temporal-testing {:mvn/version "1.12.0"}}
-                   :main-opts   ["-m" "nrepl.cmdline" "--middleware" "[cider.nrepl/cider-middleware]"]}
-           :test  {:extra-paths ["test"]
-                   :extra-deps  {org.clojure/test.check       {:mvn/version "1.1.1"}
-                                 lambdaisland/kaocha          {:mvn/version "1.67.1055"}
-                                 io.temporal/temporal-testing {:mvn/version "1.12.0"}}
-                   :main-opts   ["-m" "kaocha.runner"]}
-           :deploy {:extra-deps {slipset/deps-deploy {:mvn/version "RELEASE"}}
-                    :exec-fn    deps-deploy.deps-deploy/deploy
-                    :exec-args  {;:installer      :remote
-                                 :installer :local
-                                 ;;:sign-releases? true
-                                 :artifact       "deps-deploy.jar"
-                                 }}}}
+                      :main-opts  ["-m" "eastwood.lint" "{:source-paths,[\"src\"]}"]}
+           :build    {:deps       {io.github.clojure/tools.build    {:git/tag "v0.8.3" :git/sha "0d20256"}
+                                   io.github.seancorfield/build-clj {:git/tag "v0.8.3" :git/sha "7ac1f8d"}}
+                      :ns-default build}
+           :dev      {:extra-paths ["dev"]
+                      :extra-deps  {cider/cider-nrepl            {:mvn/version "0.28.5"}
+                                    io.temporal/temporal-testing {:mvn/version "1.14.0"}}
+                      :main-opts   ["-m" "nrepl.cmdline" "--middleware" "[cider.nrepl/cider-middleware]"]}
+           :test     {:extra-paths ["test"]
+                      :extra-deps  {org.clojure/test.check       {:mvn/version "1.1.1"}
+                                    lambdaisland/kaocha          {:mvn/version "1.69.1069"}
+                                    io.temporal/temporal-testing {:mvn/version "1.14.0"}}
+                      :main-opts   ["-m" "kaocha.runner"]}
+           :deploy   {:extra-deps {slipset/deps-deploy {:mvn/version "RELEASE"}}
+                      :exec-fn    deps-deploy.deps-deploy/deploy
+                      :exec-args  {;:installer      :remote
+                                   :installer :local
+                                   ;;:sign-releases? true
+                                   :artifact  "deps-deploy.jar"
+                                   }}}}
