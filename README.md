@@ -72,7 +72,8 @@ Deploy (on the `main` branch):
 
     $ export CLOJARS_USERNAME=username
     $ export CLOJARS_PASSWORD=clojars-token
-    $  clj -T:build ci && clj -T:build install && clj -T:build deploy
+    $ export CI=true # optional, if using temporal-testing
+    $ clj -T:build ci && clj -T:build install && clj -T:build deploy
 
 ## License
 
