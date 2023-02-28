@@ -1,6 +1,6 @@
 {:paths   ["src" "resources"]
  :deps    {org.clojure/clojure      {:mvn/version "1.11.1"}
-           io.temporal/temporal-sdk {:mvn/version "1.14.0"}}
+           io.temporal/temporal-sdk {:mvn/version "1.18.2"}}
  :aliases {:eastwood {:extra-deps {jonase/eastwood {:mvn/version "1.2.4"}}
                       :main-opts  ["-m" "eastwood.lint" "{:source-paths,[\"src\"]}"]}
            :build    {:deps       {io.github.clojure/tools.build    {:git/tag "v0.8.3" :git/sha "0d20256"}
@@ -8,17 +8,16 @@
                       :ns-default build}
            :dev      {:extra-paths ["dev"]
                       :extra-deps  {cider/cider-nrepl            {:mvn/version "0.28.5"}
-                                    io.temporal/temporal-testing {:mvn/version "1.14.0"}}
+                                    io.temporal/temporal-testing {:mvn/version "1.18.1"}}
                       :main-opts   ["-m" "nrepl.cmdline" "--middleware" "[cider.nrepl/cider-middleware]"]}
            :test     {:extra-paths ["test"]
                       :extra-deps  {org.clojure/test.check       {:mvn/version "1.1.1"}
                                     lambdaisland/kaocha          {:mvn/version "1.69.1069"}
-                                    io.temporal/temporal-testing {:mvn/version "1.14.0"}}
+                                    io.temporal/temporal-testing {:mvn/version "1.18.2"}}
                       :main-opts   ["-m" "kaocha.runner"]}
            :deploy   {:extra-deps {slipset/deps-deploy {:mvn/version "RELEASE"}}
                       :exec-fn    deps-deploy.deps-deploy/deploy
                       :exec-args  {;:installer      :remote
                                    :installer :local
                                    ;;:sign-releases? true
-                                   :artifact  "deps-deploy.jar"
-                                   }}}}
+                                   :artifact  "deps-deploy.jar"}}}}

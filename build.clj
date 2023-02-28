@@ -4,7 +4,7 @@
 
 (def lib 'org.clojars.nha/temporal)
 ;; temporal SDK version first
-(def version (format "1.12.0.%s" (b/git-count-revs nil)))
+(def version (format "1.18.2.%s" (b/git-count-revs nil)))
 
 (defn bb-opts [opts]
   (assoc opts
